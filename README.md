@@ -1,2 +1,2 @@
 # futtetenne.github.io
-Testing bad-oded stuff.
+Testing bad-coded stuff.
