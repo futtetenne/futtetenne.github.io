@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bild hochladen und Overlay anpassen</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            max-width: 100%;
+            max-height: 80vh; /* Damit das Canvas niemals das gesamte Browserfenster überlappt */
+            display: block;
+            margin: auto;
+        }
+    </style>
 </head>
 <body>
 
@@ -32,7 +41,7 @@
     <input type="range" id="scale" min="10" max="200" value="100">
 </div>
 
-<canvas id="canvas" style="border:1px solid black;"></canvas>
+<canvas id="canvas"></canvas>
 
 <script>
 let uploadedImage = null;
@@ -54,9 +63,20 @@ document.getElementById('submitButton').addEventListener('click', function() {
         reader.onload = function(e) {
             uploadedImage = new Image();
             uploadedImage.onload = function() {
-                canvas.width = uploadedImage.width;
-                canvas.height = uploadedImage.height;
+                // Begrenze die Größe des Canvas, damit es nie größer als das Browserfenster wird
+                const maxCanvasWidth = window.innerWidth * 0.9;
+                const maxCanvasHeight = window.innerHeight * 0.8;
                 
+                // Bestimme die skalierte Größe basierend auf dem Fenster
+                const scaleFactor = Math.min(maxCanvasWidth / uploadedImage.width, maxCanvasHeight / uploadedImage.height);
+                canvas.width = uploadedImage.width * scaleFactor;
+                canvas.height = uploadedImage.height * scaleFactor;
+
+                // Setze die Regler zurück
+                xPosSlider.value = 50;
+                yPosSlider.value = 50;
+                scaleSlider.value = 100;
+
                 // Zeichne das hochgeladene Bild und das Overlay
                 drawImages();
             };
@@ -85,13 +105,16 @@ function drawImages() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Zeichne das hochgeladene Bild
-        ctx.drawImage(uploadedImage, 0, 0);
+        ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
 
-        // Berechne die Position basierend auf den Slidern
-        const scaleFactor = scaleSlider.value / 100;
-        const overlayWidth = overlayImage.width * scaleFactor;
-        const overlayHeight = overlayImage.height * scaleFactor;
+        // Berechne die Skalierung des Overlays, damit es die gleiche Höhe wie das Bild hat
+        const scaleFactor = canvas.height / overlayImage.height;
 
+        // Setze das Overlay auf die Höhe des Bildes bei gleichbleibendem Seitenverhältnis
+        const overlayWidth = overlayImage.width * scaleFactor * (scaleSlider.value / 100);
+        const overlayHeight = overlayImage.height * scaleFactor * (scaleSlider.value / 100);
+
+        // Berechne die Position basierend auf den Slidern (Mitte als 50%)
         const x = (canvas.width - overlayWidth) * (xPosSlider.value / 100);
         const y = (canvas.height - overlayHeight) * (yPosSlider.value / 100);
 
