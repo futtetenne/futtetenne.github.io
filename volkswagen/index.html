@@ -43,6 +43,11 @@
 
 <canvas id="canvas"></canvas>
 
+<br>
+
+<!-- Download Button -->
+<button id="downloadButton" style="display:none;">Download Bild</button>
+
 <script>
 let uploadedImage = null;
 let overlayImage = null;
@@ -79,6 +84,7 @@ document.getElementById('submitButton').addEventListener('click', function() {
 
                 // Zeichne das hochgeladene Bild und das Overlay
                 drawImages();
+                document.getElementById('downloadButton').style.display = 'block'; // Zeige den Download-Button
             };
             uploadedImage.src = e.target.result;
         };
@@ -127,6 +133,17 @@ function drawImages() {
 xPosSlider.addEventListener('input', drawImages);
 yPosSlider.addEventListener('input', drawImages);
 scaleSlider.addEventListener('input', drawImages);
+
+// Funktion zum Herunterladen des Canvas-Inhalts
+document.getElementById('downloadButton').addEventListener('click', function() {
+    const canvas = document.getElementById('canvas');
+    const link = document.createElement('a');
+    
+    // Exportiere das Canvas als Bild in voller Auflösung (PNG)
+    link.href = canvas.toDataURL('image/png');
+    link.download = 'erstelltes_bild.png'; // Dateiname
+    link.click();
+});
 </script>
 
 </body>
