@@ -1,9 +1,22 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bild hochladen und überlagern</title>
+</head>
+<body>
+
 <form method="post" enctype="multipart/form-data">
-  <label>Wählen Sie ein Bild (*.png oder *.jpd) aus...
-    <input name="datei" type="file" size="50" accept="text/*"> 
-  </label>  
-  <button id="submitButton">...und dann hier klicken!</button>
+    <label>Wählen Sie ein Bild (*.png oder *.jpg) aus...
+        <input id="fileInput" type="file" accept="image/png, image/jpeg"> 
+    </label>  
+    <button type="button" id="submitButton">...und dann hier klicken!</button>
 </form>
+
+<br>
+
+<canvas id="canvas" style="border:1px solid black;"></canvas>
 
 <script>
 document.getElementById('submitButton').addEventListener('click', function() {
@@ -46,3 +59,6 @@ document.getElementById('submitButton').addEventListener('click', function() {
     }
 });
 </script>
+
+</body>
+</html>
