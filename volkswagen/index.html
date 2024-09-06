@@ -274,19 +274,33 @@ scaleSlider.addEventListener('input', () => drawImages(true));
 // Funktion zum Herunterladen des Canvas-Inhalts in voller Qualität
 document.getElementById('downloadButton').addEventListener('click', function() {
     const canvas = document.getElementById('canvas');
-    const link = document.createElement('a');
-    
+    const originalWidth = canvasOriginalWidth;
+    const originalHeight = canvasOriginalHeight;
+
     // Erstellt ein verstecktes Canvas mit der Originalgröße
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvasOriginalWidth;
-    tempCanvas.height = canvasOriginalHeight;
     const tempCtx = tempCanvas.getContext('2d');
-    
-    // Zeichne das Bild auf das versteckte Canvas in Originalgröße
-    drawImages(false);
-    
-    // Download des Originalbildes
-    link.href = canvas.toDataURL('image/png');
+    tempCanvas.width = originalWidth;
+    tempCanvas.height = originalHeight;
+
+    // Zeichne das hochgeladene Bild auf das versteckte Canvas
+    tempCtx.drawImage(uploadedImage, 0, 0, originalWidth, originalHeight);
+
+    // Berechne die Skalierung des Overlays für die Originalgröße
+    const scaleFactor = originalHeight / overlayImage.height;
+    const overlayWidth = overlayImage.width * scaleFactor * (scaleSlider.value / 100);
+    const overlayHeight = overlayImage.height * scaleFactor * (scaleSlider.value / 100);
+
+    // Berechne die Position basierend auf den Slidern für die Originalgröße
+    const x = (originalWidth - overlayWidth) * (xPosSlider.value / 100);
+    const y = (originalHeight - overlayHeight) * (yPosSlider.value / 100);
+
+    // Zeichne das Overlay-Bild mit der berechneten Position und Größe auf das versteckte Canvas
+    tempCtx.drawImage(overlayImage, x, y, overlayWidth, overlayHeight);
+
+    // Erstelle einen Download-Link für das versteckte Canvas
+    const link = document.createElement('a');
+    link.href = tempCanvas.toDataURL('image/png');
     link.download = 'erstelltes_bild.png';
     link.click();
 });
