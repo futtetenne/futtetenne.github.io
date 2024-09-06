@@ -5,12 +5,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bild hochladen und Overlay anpassen</title>
     <style>
+        /* Farben */
+        :root {
+            --tuerkis: #40E0D0;
+            --rot: #FF4136;
+            --dunkeltuerkis: #008B8B;
+            --schwarz: #111111;
+        }
+
+        /* Body Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--schwarz);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Form Styling */
+        form {
+            background-color: var(--dunkeltuerkis);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: var(--tuerkis);
+        }
+
+        input[type="file"] {
+            color: var(--rot);
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        button {
+            background-color: var(--tuerkis);
+            color: var(--schwarz);
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--rot);
+        }
+
+        /* Sliders */
+        div {
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: var(--dunkeltuerkis);
+            height: 8px;
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background-color: var(--rot);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Canvas Styling */
         canvas {
-            border: 1px solid black;
+            border: 3px solid var(--tuerkis);
             max-width: 100%;
-            max-height: 80vh; /* Damit das Canvas niemals das gesamte Browserfenster überlappt */
+            max-height: 60vh;
+            margin: 20px auto;
             display: block;
-            margin: auto;
+            background-color: var(--schwarz);
+        }
+
+        /* Download Button */
+        #downloadButton {
+            background-color: var(--tuerkis);
+            color: var(--schwarz);
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #downloadButton:hover {
+            background-color: var(--rot);
+        }
+
+        /* Responsive Styling */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            form {
+                width: 90%;
+                margin: 10px;
+            }
+
+            button, #downloadButton {
+                width: 100%;
+            }
+
+            input[type="range"] {
+                width: 80%;
+            }
         }
     </style>
 </head>
@@ -22,8 +146,6 @@
     </label>  
     <button type="button" id="submitButton">...und dann hier klicken!</button>
 </form>
-
-<br>
 
 <!-- Sliders für Position und Größe -->
 <div>
@@ -42,8 +164,6 @@
 </div>
 
 <canvas id="canvas"></canvas>
-
-<br>
 
 <!-- Download Button -->
 <button id="downloadButton" style="display:none;">Download Bild</button>
