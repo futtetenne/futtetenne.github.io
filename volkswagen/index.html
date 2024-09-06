@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bild hochladen und überlagern</title>
+    <style>
+        #controls {
+            margin-top: 10px;
+        }
+        label {
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
@@ -18,6 +26,15 @@
 
 <canvas id="canvas" style="border:1px solid black;"></canvas>
 
+<div id="controls">
+    <label>Position X:
+        <input type="range" id="xPosition" min="0" max="100" value="50">
+    </label>
+    <label>Position Y:
+        <input type="range" id="yPosition" min="0" max="100" value="50">
+    </label>
+</div>
+
 <script>
 document.getElementById('submitButton').addEventListener('click', function() {
     const fileInput = document.getElementById('fileInput');
@@ -31,23 +48,33 @@ document.getElementById('submitButton').addEventListener('click', function() {
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
-                // Set canvas size to match the uploaded image size
-                canvas.width = img.width;
-                canvas.height = img.height;
-
-                // Draw the uploaded image onto the canvas
-                ctx.drawImage(img, 0, 0);
-
                 // Load the transparent PNG overlay
                 const overlay = new Image();
                 overlay.src = 'transparent-overlay.png'; // Pfad zum transparenten PNG
+                
                 overlay.onload = function() {
-                    // Calculate center position
-                    const x = (canvas.width - overlay.width) / 2;
-                    const y = (canvas.height - overlay.height) / 2;
+                    // Set canvas size to match the overlay size
+                    canvas.width = overlay.width;
+                    canvas.height = overlay.height;
 
-                    // Draw the overlay on top of the uploaded image
-                    ctx.drawImage(overlay, x, y);
+                    // Scale the uploaded image to the size of the overlay
+                    ctx.drawImage(img, 0, 0, overlay.width, overlay.height);
+
+                    // Initial drawing of the overlay at the center
+                    drawOverlay(overlay, 50, 50);
+                    
+                    // Update overlay position as user moves sliders
+                    document.getElementById('xPosition').addEventListener('input', function() {
+                        const x = this.value;
+                        const y = document.getElementById('yPosition').value;
+                        drawOverlay(overlay, x, y);
+                    });
+                    
+                    document.getElementById('yPosition').addEventListener('input', function() {
+                        const y = this.value;
+                        const x = document.getElementById('xPosition').value;
+                        drawOverlay(overlay, x, y);
+                    });
                 };
             };
             img.src = e.target.result;
@@ -56,6 +83,25 @@ document.getElementById('submitButton').addEventListener('click', function() {
         reader.readAsDataURL(fileInput.files[0]);
     } else {
         alert("Bitte wählen Sie eine Bilddatei aus.");
+    }
+
+    function drawOverlay(overlay, xPercent, yPercent) {
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Re-draw the scaled uploaded image
+        const img = new Image();
+        img.src = fileInput.files[0] ? URL.createObjectURL(fileInput.files[0]) : '';
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, overlay.width, overlay.height);
+            
+            // Calculate new overlay position based on percentage
+            const x = (canvas.width - overlay.width) * (xPercent / 100);
+            const y = (canvas.height - overlay.height) * (yPercent / 100);
+
+            // Draw the overlay at the new position
+            ctx.drawImage(overlay, x, y);
+        };
     }
 });
 </script>
