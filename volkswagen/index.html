@@ -24,6 +24,7 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            padding: 10px;
         }
 
         /* Form Styling */
@@ -33,6 +34,8 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
         }
 
         label {
@@ -50,12 +53,13 @@
             background-color: var(--tuerkis);
             color: var(--schwarz);
             border: none;
-            padding: 10px 20px;
+            padding: 15px 20px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
+            width: 100%;
         }
 
         button:hover {
@@ -65,6 +69,7 @@
         /* Sliders */
         div {
             margin-bottom: 10px;
+            width: 100%;
         }
 
         label {
@@ -105,12 +110,13 @@
             background-color: var(--tuerkis);
             color: var(--schwarz);
             border: none;
-            padding: 10px 20px;
+            padding: 15px 20px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
             margin-top: 20px;
+            width: 100%;
         }
 
         #downloadButton:hover {
@@ -125,7 +131,6 @@
 
             form {
                 width: 90%;
-                margin: 10px;
             }
 
             button, #downloadButton {
@@ -133,7 +138,12 @@
             }
 
             input[type="range"] {
-                width: 80%;
+                width: 100%;
+            }
+
+            canvas {
+                max-width: 90vw;
+                max-height: 50vh;
             }
         }
     </style>
@@ -171,6 +181,8 @@
 <script>
 let uploadedImage = null;
 let overlayImage = null;
+let canvasOriginalWidth = 0;
+let canvasOriginalHeight = 0;
 
 // Sliders
 const xPosSlider = document.getElementById('xPos');
@@ -188,11 +200,14 @@ document.getElementById('submitButton').addEventListener('click', function() {
         reader.onload = function(e) {
             uploadedImage = new Image();
             uploadedImage.onload = function() {
-                // Begrenze die Größe des Canvas, damit es nie größer als das Browserfenster wird
+                // Speichere die Originalgröße
+                canvasOriginalWidth = uploadedImage.width;
+                canvasOriginalHeight = uploadedImage.height;
+                
+                // Vorschau: Begrenze die Größe des Canvas basierend auf der Fenstergröße
                 const maxCanvasWidth = window.innerWidth * 0.9;
                 const maxCanvasHeight = window.innerHeight * 0.8;
                 
-                // Bestimme die skalierte Größe basierend auf dem Fenster
                 const scaleFactor = Math.min(maxCanvasWidth / uploadedImage.width, maxCanvasHeight / uploadedImage.height);
                 canvas.width = uploadedImage.width * scaleFactor;
                 canvas.height = uploadedImage.height * scaleFactor;
@@ -222,27 +237,29 @@ document.getElementById('submitButton').addEventListener('click', function() {
     }
 });
 
-function drawImages() {
+function drawImages(preview = true) {
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     
     if (uploadedImage && overlayImage) {
+        // Bestimme die Bildgröße (Vorschau vs Originalgröße)
+        const canvasWidth = preview ? canvas.width : canvasOriginalWidth;
+        const canvasHeight = preview ? canvas.height : canvasOriginalHeight;
+        
         // Leere das Canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Zeichne das hochgeladene Bild
-        ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(uploadedImage, 0, 0, canvasWidth, canvasHeight);
 
-        // Berechne die Skalierung des Overlays, damit es die gleiche Höhe wie das Bild hat
-        const scaleFactor = canvas.height / overlayImage.height;
-
-        // Setze das Overlay auf die Höhe des Bildes bei gleichbleibendem Seitenverhältnis
+        // Berechne die Skalierung des Overlays
+        const scaleFactor = canvasHeight / overlayImage.height;
         const overlayWidth = overlayImage.width * scaleFactor * (scaleSlider.value / 100);
         const overlayHeight = overlayImage.height * scaleFactor * (scaleSlider.value / 100);
 
-        // Berechne die Position basierend auf den Slidern (Mitte als 50%)
-        const x = (canvas.width - overlayWidth) * (xPosSlider.value / 100);
-        const y = (canvas.height - overlayHeight) * (yPosSlider.value / 100);
+        // Berechne die Position basierend auf den Slidern
+        const x = (canvasWidth - overlayWidth) * (xPosSlider.value / 100);
+        const y = (canvasHeight - overlayHeight) * (yPosSlider.value / 100);
 
         // Zeichne das Overlay-Bild mit der berechneten Position und Größe
         ctx.drawImage(overlayImage, x, y, overlayWidth, overlayHeight);
@@ -250,18 +267,27 @@ function drawImages() {
 }
 
 // Aktualisiere die Position und Größe dynamisch, wenn die Sliders bewegt werden
-xPosSlider.addEventListener('input', drawImages);
-yPosSlider.addEventListener('input', drawImages);
-scaleSlider.addEventListener('input', drawImages);
+xPosSlider.addEventListener('input', () => drawImages(true));
+yPosSlider.addEventListener('input', () => drawImages(true));
+scaleSlider.addEventListener('input', () => drawImages(true));
 
-// Funktion zum Herunterladen des Canvas-Inhalts
+// Funktion zum Herunterladen des Canvas-Inhalts in voller Qualität
 document.getElementById('downloadButton').addEventListener('click', function() {
     const canvas = document.getElementById('canvas');
     const link = document.createElement('a');
     
-    // Exportiere das Canvas als Bild in voller Auflösung (PNG)
+    // Erstellt ein verstecktes Canvas mit der Originalgröße
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvasOriginalWidth;
+    tempCanvas.height = canvasOriginalHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // Zeichne das Bild auf das versteckte Canvas in Originalgröße
+    drawImages(false);
+    
+    // Download des Originalbildes
     link.href = canvas.toDataURL('image/png');
-    link.download = 'erstelltes_bild.png'; // Dateiname
+    link.download = 'erstelltes_bild.png';
     link.click();
 });
 </script>
