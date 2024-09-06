@@ -3,15 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bild hochladen und überlagern</title>
-    <style>
-        #controls {
-            margin-top: 10px;
-        }
-        label {
-            display: block;
-        }
-    </style>
+    <title>Bild hochladen und Overlay anpassen</title>
 </head>
 <body>
 
@@ -24,86 +16,94 @@
 
 <br>
 
-<canvas id="canvas" style="border:1px solid black;"></canvas>
-
-<div id="controls">
-    <label>Position X:
-        <input type="range" id="xPosition" min="0" max="100" value="50">
-    </label>
-    <label>Position Y:
-        <input type="range" id="yPosition" min="0" max="100" value="50">
-    </label>
+<!-- Sliders für Position und Größe -->
+<div>
+    <label for="xPos">X Position: </label>
+    <input type="range" id="xPos" min="0" max="100" value="50">
 </div>
 
+<div>
+    <label for="yPos">Y Position: </label>
+    <input type="range" id="yPos" min="0" max="100" value="50">
+</div>
+
+<div>
+    <label for="scale">Skalierung (%): </label>
+    <input type="range" id="scale" min="10" max="200" value="100">
+</div>
+
+<canvas id="canvas" style="border:1px solid black;"></canvas>
+
 <script>
+let uploadedImage = null;
+let overlayImage = null;
+
+// Sliders
+const xPosSlider = document.getElementById('xPos');
+const yPosSlider = document.getElementById('yPos');
+const scaleSlider = document.getElementById('scale');
+
 document.getElementById('submitButton').addEventListener('click', function() {
     const fileInput = document.getElementById('fileInput');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     
-    // Check if a file is selected
     if (fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
         
         reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                // Load the transparent PNG overlay
-                const overlay = new Image();
-                overlay.src = 'transparent-overlay.png'; // Pfad zum transparenten PNG
+            uploadedImage = new Image();
+            uploadedImage.onload = function() {
+                canvas.width = uploadedImage.width;
+                canvas.height = uploadedImage.height;
                 
-                overlay.onload = function() {
-                    // Set canvas size to match the overlay size
-                    canvas.width = overlay.width;
-                    canvas.height = overlay.height;
-
-                    // Scale the uploaded image to the size of the overlay
-                    ctx.drawImage(img, 0, 0, overlay.width, overlay.height);
-
-                    // Initial drawing of the overlay at the center
-                    drawOverlay(overlay, 50, 50);
-                    
-                    // Update overlay position as user moves sliders
-                    document.getElementById('xPosition').addEventListener('input', function() {
-                        const x = this.value;
-                        const y = document.getElementById('yPosition').value;
-                        drawOverlay(overlay, x, y);
-                    });
-                    
-                    document.getElementById('yPosition').addEventListener('input', function() {
-                        const y = this.value;
-                        const x = document.getElementById('xPosition').value;
-                        drawOverlay(overlay, x, y);
-                    });
-                };
+                // Zeichne das hochgeladene Bild und das Overlay
+                drawImages();
             };
-            img.src = e.target.result;
+            uploadedImage.src = e.target.result;
         };
         
         reader.readAsDataURL(fileInput.files[0]);
+        
+        // Lade das Overlay-Bild
+        overlayImage = new Image();
+        overlayImage.src = 'transparent-overlay.png'; // Pfad zum Overlay
+        overlayImage.onload = function() {
+            drawImages();
+        };
     } else {
         alert("Bitte wählen Sie eine Bilddatei aus.");
     }
+});
 
-    function drawOverlay(overlay, xPercent, yPercent) {
-        // Clear the canvas
+function drawImages() {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (uploadedImage && overlayImage) {
+        // Leere das Canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Re-draw the scaled uploaded image
-        const img = new Image();
-        img.src = fileInput.files[0] ? URL.createObjectURL(fileInput.files[0]) : '';
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0, overlay.width, overlay.height);
-            
-            // Calculate new overlay position based on percentage
-            const x = (canvas.width - overlay.width) * (xPercent / 100);
-            const y = (canvas.height - overlay.height) * (yPercent / 100);
+        // Zeichne das hochgeladene Bild
+        ctx.drawImage(uploadedImage, 0, 0);
 
-            // Draw the overlay at the new position
-            ctx.drawImage(overlay, x, y);
-        };
+        // Berechne die Position basierend auf den Slidern
+        const scaleFactor = scaleSlider.value / 100;
+        const overlayWidth = overlayImage.width * scaleFactor;
+        const overlayHeight = overlayImage.height * scaleFactor;
+
+        const x = (canvas.width - overlayWidth) * (xPosSlider.value / 100);
+        const y = (canvas.height - overlayHeight) * (yPosSlider.value / 100);
+
+        // Zeichne das Overlay-Bild mit der berechneten Position und Größe
+        ctx.drawImage(overlayImage, x, y, overlayWidth, overlayHeight);
     }
-});
+}
+
+// Aktualisiere die Position und Größe dynamisch, wenn die Sliders bewegt werden
+xPosSlider.addEventListener('input', drawImages);
+yPosSlider.addEventListener('input', drawImages);
+scaleSlider.addEventListener('input', drawImages);
 </script>
 
 </body>
